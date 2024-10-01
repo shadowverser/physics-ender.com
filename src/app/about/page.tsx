@@ -2,11 +2,10 @@
 
 import { ThemeProvider } from 'next-themes'
 
-import Link from 'next/link'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 
-const about_text: String = '140字に収まらなかった文章を載せるサイトです。不定期更新';
+const about_text: string = '140字に収まらなかった文章を載せるサイトです。不定期更新';
 
 export default function Home() {
   return (
