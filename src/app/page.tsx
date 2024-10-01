@@ -1,11 +1,12 @@
-import { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'physics-ender.com',
-}
+import { Page } from '@/components/page'
+import { ThemeProvider } from 'next-themes'
 
 export default function Home() {
   return (
-    <h1>physics-ender.com</h1>
-  );
+    <main>
+      <ThemeProvider>
+        <Page />
+      </ThemeProvider>
+    </main>
+  )
 }
