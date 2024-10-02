@@ -6,7 +6,7 @@ import { Headphones, Mail, Twitter } from 'lucide-react'
 export function Footer() {
   return (
 
-    <footer className="bg-gray-900 text-gray-400 py-8 fixed bottom-0 w-full">
+    <footer className="bg-gray-900 text-gray-400 py-8 w-full">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           <p className="text-sm">&copy; 2024 Ren Takahashi. All rights reserved.</p>
