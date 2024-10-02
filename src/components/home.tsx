@@ -20,7 +20,7 @@ export default async function Home() {
   return (
     <main className="container mx-auto px-4 py-16">
       <section className="mb-24">
-        <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">文章ズ</h2>
+        <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">Articles</h2>
         <div className="space-y-8">
           {articles.map((article) => (
             <article key={article.id} className="border-l-4 border-white pl-4 py-2">
