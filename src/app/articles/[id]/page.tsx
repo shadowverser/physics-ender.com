@@ -31,7 +31,7 @@ export default async function ArticlePage({ params }: { params: { id: string } }
                     <section className="mb-24">
                         <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">{article.title}</h2>
                         <div className="space-y-8">
-                            <p className="text-gray-400 mb-2">{article.content}</p>
+                            <p className="text-gray-400 mb-2 break-words">{article.content}</p>
                         </div>
                     </section>
                 </main>

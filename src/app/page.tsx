@@ -11,7 +11,7 @@ export default function Page() {
         <Header />
 
         {/* メインコンテンツ */}
-        <main className="flex-grow mx-auto w-full max-w-screen-md px-4">
+        <main className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words">
           <Home />
         </main>
 
@@ -21,3 +21,4 @@ export default function Page() {
     </ThemeProvider>
   )
 }
+
