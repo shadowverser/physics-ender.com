@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export function Header() {
   return (
-    <header className="border-b border-gray-800 sticky top-0 w-full">
+    <header className="bg-black/50 border-b border-gray-800 sticky top-0 w-full">
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold">physics-ender.com</Link>
         <div className="space-x-6 text-sm">
