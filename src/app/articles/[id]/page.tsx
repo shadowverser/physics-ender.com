@@ -5,6 +5,8 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { client } from '@/lib/microcms';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 type Article = {
     id: string;
@@ -35,8 +37,13 @@ export default async function ArticlePage({ params }: { params: { id: string } }
                         <div className="space-y-8 border-b border-gray-800">
                             <p className="text-gray-200 mb-2 break-words">{article.summary}</p>
                         </div>
-                        <div className='space-y-8'>
-                            <ReactMarkdown>{article.content}</ReactMarkdown>
+                        <div className='space-y-4 mt-8 prose prose-invert text-gray-400'>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                rehypePlugins={[rehypeRaw]}
+                            >
+                                {article.content}
+                            </ReactMarkdown>
                         </div>
                     </section>
                 </main>

@@ -11,7 +11,7 @@ export function Footer() {
         <div className="flex justify-between items-center">
           <p className="text-sm">&copy; 2024 Ren Takahashi. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link href="https://soundcloud.com/inanexia" className="hover:text-white transition-colors" aria-label="Soundcloud">
+            <Link href="https://soundcloud.com/kthrmusic" className="hover:text-white transition-colors" aria-label="Soundcloud">
               <Headphones className="h-5 w-5" />
             </Link>
             <Link href="https://x.com/yoroizuka2zore" className="hover:text-white transition-colors" aria-label="X (Twitter)">
