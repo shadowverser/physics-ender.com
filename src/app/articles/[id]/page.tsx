@@ -16,7 +16,6 @@ type Article = {
     title: string;
     summary: string;
     content: string;
-    imageUrl?: string; // 画像URLがある場合の対応
 };
 
 export default function ArticlePage() {
@@ -45,6 +44,8 @@ export default function ArticlePage() {
         return <p className="text-white text-center mt-10">Loading...</p>;
     }
 
+    const ogImageUrl = `https://physics-ender.com/api/og?title=${encodeURIComponent(article.title)}`;
+
     return (
         <ThemeProvider>
             <Head>
@@ -52,17 +53,13 @@ export default function ArticlePage() {
                 <meta name="description" content={article.summary} />
                 <meta property="og:title" content={article.title} />
                 <meta property="og:description" content={article.summary} />
-                <meta property="og:url" content={`https://example.com/articles/${article.id}`} />
+                <meta property="og:url" content={`https://physics-ender.com/articles/${article.id}`} />
                 <meta property="og:type" content="article" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={article.title} />
                 <meta name="twitter:description" content={article.summary} />
-                {article.imageUrl && (
-                    <>
-                        <meta property="og:image" content={article.imageUrl} />
-                        <meta name="twitter:image" content={article.imageUrl} />
-                    </>
-                )}
+                <meta property="og:image" content={ogImageUrl} />
+                <meta name="twitter:image" content={ogImageUrl} />
             </Head>
 
             <div className="min-h-screen flex flex-col bg-black text-white">
