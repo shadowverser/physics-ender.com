@@ -1,9 +1,6 @@
 import { ImageResponse } from "@vercel/og";
 
-// フォントの設定 (デフォルトのフォント)
-export const config = {
-    runtime: "edge",
-};
+export const runtime = "edge"; // 修正：この書き方が最新の仕様
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
