@@ -8,22 +8,42 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import Head from 'next/head'
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 
 type Article = {
     id: string;
     title: string;
     summary: string;
     content: string;
+    imageUrl?: string; // 画像URLがある場合の対応
 };
 
-export default async function ArticlePage({ params }: { params: { id: string } }) {
-    // microCMSから特定の記事データを取得
-    const data = await client.get({
-        endpoint: 'articles',
-        contentId: params.id,
-    });
+export default function ArticlePage() {
+    const { id } = useParams(); // パラメータ取得
+    const [article, setArticle] = useState<Article | null>(null);
 
-    const article: Article = data;
+    useEffect(() => {
+        async function fetchArticle() {
+            try {
+                const data = await client.get({
+                    endpoint: 'articles',
+                    contentId: id as string,
+                });
+                setArticle(data);
+            } catch (error) {
+                console.error("記事の取得に失敗しました", error);
+            }
+        }
+
+        if (id) {
+            fetchArticle();
+        }
+    }, [id]);
+
+    if (!article) {
+        return <p className="text-white text-center mt-10">Loading...</p>;
+    }
 
     return (
         <ThemeProvider>
@@ -37,6 +57,12 @@ export default async function ArticlePage({ params }: { params: { id: string } }
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={article.title} />
                 <meta name="twitter:description" content={article.summary} />
+                {article.imageUrl && (
+                    <>
+                        <meta property="og:image" content={article.imageUrl} />
+                        <meta name="twitter:image" content={article.imageUrl} />
+                    </>
+                )}
             </Head>
 
             <div className="min-h-screen flex flex-col bg-black text-white">
