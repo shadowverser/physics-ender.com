@@ -3,10 +3,11 @@
 import { ThemeProvider } from 'next-themes'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { client } from '@/lib/microcms';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
+import { client } from '@/lib/microcms'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import Head from 'next/head'
 
 type Article = {
     id: string;
@@ -26,6 +27,18 @@ export default async function ArticlePage({ params }: { params: { id: string } }
 
     return (
         <ThemeProvider>
+            <Head>
+                <title>{article.title}</title>
+                <meta name="description" content={article.summary} />
+                <meta property="og:title" content={article.title} />
+                <meta property="og:description" content={article.summary} />
+                <meta property="og:url" content={`https://example.com/articles/${article.id}`} />
+                <meta property="og:type" content="article" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={article.title} />
+                <meta name="twitter:description" content={article.summary} />
+            </Head>
+
             <div className="min-h-screen flex flex-col bg-black text-white">
                 {/* ヘッダー */}
                 <Header />

@@ -1,7 +1,11 @@
+'use client';
+
 // src/components/Home.tsx
 
+import { useEffect, useState } from "react";
 import { client } from '@/lib/microcms';
 import Link from 'next/link';
+import { useRouter } from "next/navigation";
 
 type Article = {
   id: string;
@@ -10,14 +14,20 @@ type Article = {
   content: string;
 };
 
-export default async function Home() {
-  // サーバーコンポーネントとしてmicroCMSからデータを取得
-  const data = await client.get({
-    endpoint: 'articles',
-    queries: { limit: 10 },
-  });
+export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const router = useRouter();
 
-  const articles: Article[] = data.contents;
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await client.get({
+        endpoint: "articles",
+        queries: { limit: 10 },
+      });
+      setArticles(data.contents);
+    };
+    fetchData();
+  }, []);
 
   return (
     <main className="container mx-auto px-4 py-16">
