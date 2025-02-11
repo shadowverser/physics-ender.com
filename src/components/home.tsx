@@ -5,26 +5,28 @@
 import { useEffect, useState } from "react";
 import { client } from '@/lib/microcms';
 import Link from 'next/link';
-import { useRouter } from "next/navigation";
 
 type Article = {
   id: string;
   title: string;
-  summary: string;
+  summary?: string; // optionalに変更
   content: string;
 };
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await client.get({
-        endpoint: "articles",
-        queries: { limit: 10 },
-      });
-      setArticles(data.contents);
+      try {
+        const data = await client.get({
+          endpoint: "articles",
+          queries: { limit: 10 },
+        });
+        setArticles(data.contents);
+      } catch (error) {
+        console.error("記事の取得に失敗しました", error);
+      }
     };
     fetchData();
   }, []);
@@ -37,7 +39,9 @@ export default function Home() {
           {articles.map((article) => (
             <article key={article.id} className="border-l-4 border-white pl-4 py-2">
               <h3 className="text-xl font-semibold mb-2">{article.title}</h3>
-              <p className="text-gray-400 mb-2">{article.summary?.substring(0, 100)}...</p> {/* sammaryの冒頭部分を表示 */}
+              <p className="text-gray-400 mb-2">
+                {article.summary ? article.summary.substring(0, 100) : "No summary available"}...
+              </p>
               <Link href={`/articles/${article.id}`} className="text-sm text-gray-300 hover:text-white transition-colors">
                 Read More →
               </Link>
