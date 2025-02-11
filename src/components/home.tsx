@@ -1,10 +1,12 @@
 // src/components/Home.tsx
+
 import { client } from '@/lib/microcms';
 import Link from 'next/link';
 
 type Article = {
   id: string;
   title: string;
+  summary: string;
   content: string;
 };
 
@@ -25,7 +27,7 @@ export default async function Home() {
           {articles.map((article) => (
             <article key={article.id} className="border-l-4 border-white pl-4 py-2">
               <h3 className="text-xl font-semibold mb-2">{article.title}</h3>
-              <p className="text-gray-400 mb-2">{article.content.substring(0, 100)}...</p> {/* contentの冒頭部分を表示 */}
+              <p className="text-gray-400 mb-2">{article.summary?.substring(0, 100)}...</p> {/* sammaryの冒頭部分を表示 */}
               <Link href={`/articles/${article.id}`} className="text-sm text-gray-300 hover:text-white transition-colors">
                 Read More →
               </Link>
