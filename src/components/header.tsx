@@ -7,6 +7,7 @@ export function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const topThreshold = 80; // ページ上部の閾値（50px 未満なら常に表示）
 
   // ヘッダーの高さをCSS変数に設定する
   useEffect(() => {
@@ -22,17 +23,23 @@ export function Header() {
     return () => window.removeEventListener('resize', updateHeaderHeight);
   }, []);
 
-  // スクロール方向による表示切替
+  // スクロール方向による表示切替 + ページ上部では常に表示
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > lastScrollY.current) {
-        // 下にスクロールしたら非表示
-        setIsVisible(false);
-      } else {
-        // 上にスクロールしたら表示
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < topThreshold) {
+        // ページ上部なら常に表示
         setIsVisible(true);
+      } else {
+        if (currentScrollY > lastScrollY.current) {
+          // 下にスクロールしたら非表示
+          setIsVisible(false);
+        } else {
+          // 上にスクロールしたら表示
+          setIsVisible(true);
+        }
       }
-      lastScrollY.current = window.scrollY;
+      lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -46,15 +53,10 @@ export function Header() {
       className={`bg-black/50 border-b border-gray-800 fixed top-0 w-full transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'
         }`}
     >
-      <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
+      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold mx-2">
           physics-ender.com
         </Link>
-        {/* <div className="space-x-6 text-sm">
-          <Link href="/about" className="hover:text-gray-300 transition-colors">
-            ABOUT
-          </Link>
-        </div> */}
       </nav>
     </header>
   );
