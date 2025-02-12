@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer'
 import { ThemeProvider } from 'next-themes'
 
 export default function Page() {
+
   return (
     <ThemeProvider>
       <div className="min-h-screen flex flex-col bg-black text-white">
@@ -13,7 +14,9 @@ export default function Page() {
         <Header />
 
         {/* メインコンテンツ */}
-        <main className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words">
+        <main
+          className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words"
+        >
           <Home />
         </main>
 
@@ -21,6 +24,5 @@ export default function Page() {
         <Footer />
       </div>
     </ThemeProvider>
-  )
+  );
 }
-
