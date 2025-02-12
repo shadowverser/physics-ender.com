@@ -7,7 +7,7 @@ export function Header() {
   const headerRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const topThreshold = 80; // ページ上部の閾値（50px 未満なら常に表示）
+  const topThreshold = 60; // ページ上部の閾値（50px 未満なら常に表示）
 
   // ヘッダーの高さをCSS変数に設定する
   useEffect(() => {
