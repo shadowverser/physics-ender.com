@@ -73,7 +73,7 @@ export default function ArticlePage() {
                         <div className="space-y-8 border-b border-gray-800">
                             <p className="text-gray-200 mb-2 break-words">{article.summary}</p>
                         </div>
-                        <div className='space-y-4 mt-8 prose prose-invert text-gray-400'>
+                        <div className='space-y-4 mt-8 prose prose-invert text-gray-200'>
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 rehypePlugins={[rehypeRaw]}
