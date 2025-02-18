@@ -71,7 +71,7 @@ export default function ArticlePage() {
                     <section className="mb-24">
                         <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">{article.title}</h2>
                         <div className="space-y-8 border-b border-gray-800">
-                            <p className="text-gray-200 mb-2 break-words">{article.summary}</p>
+                            <p className="text-gray-200 mb-2 break-words whitespace-pre-wrap">{article.summary}</p>
                         </div>
                         <div className='space-y-4 mt-8 prose prose-invert text-gray-200'>
                             <ReactMarkdown
