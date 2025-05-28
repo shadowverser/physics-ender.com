@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Headphones, Mail, Twitter } from 'lucide-react'
+import { Headphones, Twitter } from 'lucide-react'
 
 export function Footer() {
   return (
