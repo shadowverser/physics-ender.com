@@ -14,7 +14,7 @@ export function Footer() {
             <Link href="https://soundcloud.com/kthrmusic" className="hover:text-white transition-colors" aria-label="Soundcloud">
               <Headphones className="h-5 w-5" />
             </Link>
-            <Link href="https://x.com/yz2z_blog" className="hover:text-white transition-colors" aria-label="X (Twitter)">
+            <Link href="https://x.com/yoroizuka2zore" className="hover:text-white transition-colors" aria-label="X (Twitter)">
               <Twitter className="h-5 w-5" />
             </Link>
           </div>
