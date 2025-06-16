@@ -4,7 +4,7 @@ import { ThemeProvider } from 'next-themes'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { client } from '@/lib/microcms'
-import ReactMarkdown, { Components } from 'react-markdown'
+import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import rehypeHighlight from 'rehype-highlight'
@@ -112,7 +112,7 @@ export default function ArticlePage() {
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw, rehypeHighlight]}
                 components={{
-                  code: ({ node, inline, className, children, ...props }: any) => {
+                  code: ({ inline, className, children, ...props }: React.HTMLAttributes<HTMLElement> & { inline?: boolean }) => {
                     // ブロックコード: rehype-highlight に任せ、ラッパーだけ整形
                     if (!inline) {
                       return (
