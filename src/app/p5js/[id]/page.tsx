@@ -1,6 +1,6 @@
 // src/app/p5js/[id]/page.tsx
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { client } from "@/lib/microcms";
 import { ThemeProvider } from "next-themes";
 import { Header } from "@/components/header";
@@ -12,6 +12,8 @@ export default function Page({ params }: { params: { id: string } }) {
   const [data, setData] = useState<{ title: string; caption: string; code: string } | null>(null);
   const [size, setSize] = useState({ width: 400, height: 400 });
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
   // microCMSからデータ取得
   useEffect(() => {
@@ -31,6 +33,19 @@ export default function Page({ params }: { params: { id: string } }) {
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
   }, []);
+
+  useLayoutEffect(() => {
+    const updateScale = () => {
+      if (!wrapperRef.current) return;
+      const containerW = wrapperRef.current.offsetWidth;
+      const s = containerW / size.width;
+      // 幅が狭いときは縮小、広いときは等倍
+      setScale(s < 1 ? s : 1);
+    };
+    updateScale();                         // 初回
+    window.addEventListener("resize", updateScale);
+    return () => window.removeEventListener("resize", updateScale);
+  }, [size.width]);
 
   if (!data) return <div>Loading...</div>;
 
@@ -80,39 +95,52 @@ export default function Page({ params }: { params: { id: string } }) {
     return (
       <ThemeProvider>
         <div className="min-h-screen flex flex-col bg-black text-white">
-        {/* ヘッダー */}
-        <Header />
+          <Header />
+  
+          <main className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words">
+            <div style={{ maxWidth: "100%", margin: "0 auto", padding: 24 }}>
+            <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">
+              {data.title}
+            </h2>
 
-        {/* メインコンテンツ */}
-        <main
-          className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words"
-        >
-          <div style={{ maxWidth: 400, margin: "0 auto", padding: 24 }}>
-            <h1 style={{ fontSize: "2rem", fontWeight: "bold" }}>{data.title}</h1>
-            <p style={{ color: "#444" }}>{data.caption}</p>
-            <iframe
-            ref={iframeRef}
-            width={size.width}
-            height={size.height}
-            style={{
-                border: "1px solid #ccc",
-                borderRadius: 8,
-                marginTop: 16,
-                background: "transparent",
-                display: "block",
-                overflow: "hidden"
-            }}
-            srcDoc={srcDoc}
-            sandbox="allow-scripts"
-            title="p5js-sketch"
-            />
-          </div>
-        </main>
-
-        {/* フッター */}
-        <Footer />
-      </div>
-    </ThemeProvider>
-        
+            {/* —— 概要 —— */}
+            <div className="space-y-8 border-b border-gray-800">
+              <p className="text-gray-200 mb-2 break-words whitespace-pre-wrap">
+                {data.caption}
+              </p>
+            </div>
+  
+              {/* ★ ラッパーに scale を掛ける */}
+              <div
+                ref={wrapperRef}
+                style={{
+                  width: "100%",            // ブラウザ幅いっぱい
+                  height: size.height * scale, // 等比縮小した高さ
+                  overflow: "hidden",       // はみ出しを隠す
+                }}
+              >
+                <iframe
+                  ref={iframeRef}
+                  width={size.width}
+                  height={size.height}
+                  style={{
+                    border: "1px solid #ccc",
+                    borderRadius: 8,
+                    background: "transparent",
+                    transform: `scale(${scale})`,
+                    transformOrigin: "top left",
+                    /* pointer-events: scale<1 ? "none" : "auto" */
+                  }}
+                  srcDoc={srcDoc}
+                  sandbox="allow-scripts"
+                  title="p5js-sketch"
+                />
+              </div>
+            </div>
+          </main>
+  
+          <Footer />
+        </div>
+      </ThemeProvider>
     );
 }
