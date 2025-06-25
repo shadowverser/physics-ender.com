@@ -6,21 +6,35 @@ import { ThemeProvider } from "next-themes";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
-const p5CDN = "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js";
+const p5CDN =
+  "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js";
 
 export default function Page({ params }: { params: { id: string } }) {
-  const [data, setData] = useState<{ title: string; caption: string; code: string } | null>(null);
+  /** --------------------------------------------------
+   *  state / refs
+   * -------------------------------------------------- */
+  const [data, setData] = useState<{
+    title: string;
+    caption: string;
+    code: string;
+  } | null>(null);
+
   const [size, setSize] = useState({ width: 400, height: 400 });
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  // microCMSからデータ取得
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  /** --------------------------------------------------
+   *  fetch sketch from microCMS
+   * -------------------------------------------------- */
   useEffect(() => {
     client.get({ endpoint: "sketch", contentId: params.id }).then(setData);
   }, [params.id]);
 
-  // iframeからキャンバスサイズを受信して反映
+  /** --------------------------------------------------
+   *  receive canvas size from iframe → resize wrapper
+   * -------------------------------------------------- */
   useEffect(() => {
     const handler = (e: MessageEvent) => {
       if (e.data?.type === "p5-canvas-size") {
@@ -34,125 +48,148 @@ export default function Page({ params }: { params: { id: string } }) {
     return () => window.removeEventListener("message", handler);
   }, []);
 
-  useEffect(() => {
-    const node = wrapperRef.current;
-    if (!node) return;
-  
-    const preventScroll = (e: TouchEvent) => e.preventDefault();
-    node.addEventListener("touchmove", preventScroll, { passive: false });
-  
-    return () => node.removeEventListener("touchmove", preventScroll);
-  }, []);
-
+  /** --------------------------------------------------
+   *  auto-scale canvas to fit container width
+   * -------------------------------------------------- */
   useLayoutEffect(() => {
     const updateScale = () => {
       if (!wrapperRef.current) return;
       const containerW = wrapperRef.current.offsetWidth;
       const s = containerW / size.width;
-      // 幅が狭いときは縮小、広いときは等倍
       setScale(s < 1 ? s : 1);
     };
-    updateScale();                         // 初回
+    updateScale(); // first paint
     window.addEventListener("resize", updateScale);
     return () => window.removeEventListener("resize", updateScale);
   }, [size.width]);
 
+  /** --------------------------------------------------
+   *  wrapper: stop scroll chaining on Android/desktop
+   * -------------------------------------------------- */
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node) return;
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    node.addEventListener("touchmove", prevent, { passive: false });
+    return () => node.removeEventListener("touchmove", prevent);
+  }, []);
+
   if (!data) return <div>Loading...</div>;
 
-  // p5.jsコードの末尾に「親へサイズ通知」のコードを自動付与
-  const notifySizeCode = `
-  function sendCanvasSize() {
-    const c = document.querySelector('canvas');
-    if (!c) return;
-    const { width, height } = c.getBoundingClientRect(); // ← ここ！
-    window.parent.postMessage(
-      { type: 'p5-canvas-size', width, height },
-      '*'
-    );
-  }
+  /** --------------------------------------------------
+   *  helper snippets injected into the iframe
+   * -------------------------------------------------- */
 
-  // 初回 & リサイズ時に送信
-  window.addEventListener('load', sendCanvasSize);
-  window.addEventListener('resize', sendCanvasSize);
-  setTimeout(sendCanvasSize, 100);
-`;
+  /* 1) parent-size notifier */
+  const notifySizeCode = `
+    function sendCanvasSize() {
+      const c = document.querySelector('canvas');
+      if (!c) return;
+      const { width, height } = c.getBoundingClientRect();
+      window.parent.postMessage(
+        { type: 'p5-canvas-size', width, height },
+        '*'
+      );
+    }
+    window.addEventListener('load', sendCanvasSize);
+    window.addEventListener('resize', sendCanvasSize);
+    setTimeout(sendCanvasSize, 100);
+  `;
+
+  /* 2) iOS Safari scroll lock */
+  const lockScrollCode = `
+    const lock = (e) => e.preventDefault();
+    document.addEventListener('touchmove',   lock, { passive: false });
+    document.addEventListener('pointermove', lock, { passive: false });
+  `;
+
+  /** --------------------------------------------------
+   *  build iframe srcdoc
+   * -------------------------------------------------- */
   const srcDoc = `
     <html>
-        <head>
+      <head>
+        <meta name="viewport"
+              content="width=device-width,initial-scale=1,
+                       maximum-scale=1,user-scalable=no">
         <style>
-            html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
+          html, body {
+            width: 100%; height: 100%;
+            margin: 0; padding: 0;
             overflow: hidden;
             background: transparent;
-            }
-            body { display: flex; justify-content: center; align-items: center; }
-            canvas { display: block; }
+            overscroll-behavior: contain;
+            touch-action: none;
+          }
+          body { display: flex; justify-content: center; align-items: center; }
+          canvas { display: block; }
         </style>
         <script src="${p5CDN}"></script>
-        </head>
-        <body>
+      </head>
+      <body>
         <script>
-            ${data.code}
-            ${notifySizeCode}
+          ${data.code}
+          ${notifySizeCode}
+          ${lockScrollCode}
         </script>
-        </body>
+      </body>
     </html>
-    `;
+  `;
 
-    return (
-      <ThemeProvider>
-        <div className="min-h-screen flex flex-col bg-black text-white">
-          <Header />
-  
-          <main className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words">
-            <div style={{ maxWidth: "100%", margin: "0 auto", padding: 24 }}>
+  /** --------------------------------------------------
+   *  render
+   * -------------------------------------------------- */
+  return (
+    <ThemeProvider>
+      <div className="min-h-screen flex flex-col bg-black text-white">
+        <Header />
+
+        <main className="flex-grow mx-auto w-full max-w-screen-md px-4 break-words">
+          <div style={{ maxWidth: "100%", margin: "0 auto", padding: 24 }}>
             <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">
               {data.title}
             </h2>
 
-            {/* —— 概要 —— */}
+            {/* —— caption —— */}
             <div className="space-y-8 border-b border-gray-800">
               <p className="text-gray-200 mb-2 break-words whitespace-pre-wrap">
                 {data.caption}
               </p>
             </div>
-  
-              {/* ★ ラッパーに scale を掛ける */}
-              <div
-                ref={wrapperRef}
+
+            {/* —— p5.js sketch wrapper —— */}
+            <div
+              ref={wrapperRef}
+              style={{
+                width: "100%",
+                height: size.height * scale,
+                overflow: "hidden",
+                overscrollBehavior: "contain",
+                touchAction: "none",
+              }}
+            >
+              <iframe
+                ref={iframeRef}
+                scrolling="no" // old WebKit 保険
+                width={size.width}
+                height={size.height}
                 style={{
-                  width: "100%",            // ブラウザ幅いっぱい
-                  height: size.height * scale, // 等比縮小した高さ
-                  overflow: "hidden",       // はみ出しを隠す
-                  overscrollBehavior: "contain", // 親スクロールへ連鎖させない
-                  touchAction: "none",           // ブラウザ既定のジェスチャーを無効化
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  background: "transparent",
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
                 }}
-              >
-                <iframe
-                  ref={iframeRef}
-                  width={size.width}
-                  height={size.height}
-                  style={{
-                    border: "1px solid #ccc",
-                    borderRadius: 8,
-                    background: "transparent",
-                    transform: `scale(${scale})`,
-                    transformOrigin: "top left",
-                    /* pointer-events: scale<1 ? "none" : "auto" */
-                  }}
-                  srcDoc={srcDoc}
-                  sandbox="allow-scripts"
-                  title="p5js-sketch"
-                />
-              </div>
+                srcDoc={srcDoc}
+                sandbox="allow-scripts"
+                title="p5js-sketch"
+              />
             </div>
-          </main>
-  
-          <Footer />
-        </div>
-      </ThemeProvider>
-    );
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+    </ThemeProvider>
+  );
 }
