@@ -34,6 +34,16 @@ export default function Page({ params }: { params: { id: string } }) {
     return () => window.removeEventListener("message", handler);
   }, []);
 
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node) return;
+  
+    const preventScroll = (e: TouchEvent) => e.preventDefault();
+    node.addEventListener("touchmove", preventScroll, { passive: false });
+  
+    return () => node.removeEventListener("touchmove", preventScroll);
+  }, []);
+
   useLayoutEffect(() => {
     const updateScale = () => {
       if (!wrapperRef.current) return;
@@ -117,6 +127,8 @@ export default function Page({ params }: { params: { id: string } }) {
                   width: "100%",            // ブラウザ幅いっぱい
                   height: size.height * scale, // 等比縮小した高さ
                   overflow: "hidden",       // はみ出しを隠す
+                  overscrollBehavior: "contain", // 親スクロールへ連鎖させない
+                  touchAction: "none",           // ブラウザ既定のジェスチャーを無効化
                 }}
               >
                 <iframe
