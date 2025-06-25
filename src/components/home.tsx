@@ -13,19 +13,48 @@ type Article = {
   content: string;
 };
 
+type Sketches = {
+  id: string;
+  title: string;
+  caption: string;
+  code: string;
+}
+
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [sketches, setSketches] = useState<Sketches[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await client.get({
           endpoint: "articles",
-          queries: { limit: 10 },
+          queries: {
+            limit: 10,
+            fields: 'id,title,summary'
+          },
         });
         setArticles(data.contents);
       } catch (error) {
         console.error("記事の取得に失敗しました", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await client.get({
+          endpoint: "sketch",
+          queries: {
+            limit: 10,
+            fields: 'id,title,caption'
+          },
+        });
+        setSketches(data.contents);
+      } catch (error) {
+        console.error("スケッチの取得に失敗しました", error);
       }
     };
     fetchData();
@@ -47,6 +76,23 @@ export default function Home() {
               </Link>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="mb-24">
+        <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">Sketches</h2>
+        <div className="space-y-8">
+          {sketches.map((sketch) => (
+            <article key={sketch.id} className="border-l-4 border-white pl-4 py-2">
+              <h3 className="text-xl font-semibold mb-2">{sketch.title}</h3>
+              <p className="text-gray-400 mb-2">
+                {sketch.caption ? sketch.caption.substring(0, 100) : "No caption available"}...
+              </p>
+              <Link href={`/p5js/${sketch.id}`} className="text-sm text-gray-300 hover:text-white transition-colors">
+                See →
+              </Link>
+            </article>
+          ))} 
         </div>
       </section>
     </main>
