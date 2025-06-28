@@ -151,7 +151,7 @@ export default function Page({ params }: { params: { id: string } }) {
             </h2>
 
             {/* —— caption —— */}
-            <div className="space-y-8 border-b border-gray-800">
+            <div className="space-y-8">
               <p className="text-gray-200 mb-2 break-words whitespace-pre-wrap">
                 {data.caption}
               </p>
