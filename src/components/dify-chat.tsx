@@ -84,7 +84,7 @@ export default function DifyChat() {
           }
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setMessages((prev) => [
         ...prev,
