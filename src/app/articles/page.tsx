@@ -35,7 +35,7 @@ export default function ArticlesPage() {
     <ThemeProvider>
       <div className="min-h-screen flex flex-col bg-black text-white">
         <Header />
-        <main className="max-w-screen-md w-full mx-auto px-8 py-16">
+        <main className="max-w-screen-md w-full mx-auto px-8 py-16 flex-grow">
           <section>
             <h2 className="text-3xl font-bold mb-8 border-b border-gray-800 pb-2">Articles</h2>
             <div className="space-y-8">
