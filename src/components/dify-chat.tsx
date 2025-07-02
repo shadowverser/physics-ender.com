@@ -101,18 +101,16 @@ export default function DifyChat() {
   };
 
   return (
-    <div className="flex flex-col h-full rounded-2xl p-4 bg-[#e0e0e0]" style={{boxShadow: "10px 10px 20px #bebebe, -10px -10px 20px #ffffff"}}>
+    <div className="flex flex-col h-full p-4">
       {/* メッセージリスト */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-6 p-4 text-gray-800 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-[#e0e0e0]">
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`whitespace-pre-wrap ${
-              msg.role === "user" ? "text-right" : "text-left"
-            }`}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <span style={msg.role === "user" ? {boxShadow: "6px 6px 12px #bebebe, -6px -6px 12px #ffffff"} : {boxShadow: "inset 6px 6px 12px #bebebe, inset -6px -6px 12px #ffffff"}}
-              className={`inline-block rounded-lg p-3 max-w-[80%] text-gray-800 ${
+              className={`whitespace-pre-wrap text-left inline-block rounded-lg p-3 max-w-[80%] text-gray-800 ${
                 msg.role === "user" ? "bg-gray-100" : "bg-gray-200"
               }`}
             >
@@ -130,7 +128,7 @@ export default function DifyChat() {
       >
         <textarea
           rows={2}
-          className="flex-1 rounded-xl p-3 text-gray-800 bg-[#e0e0e0] focus:outline-none resize-y max-h-40" style={{boxShadow: "inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff"}}
+          className="flex-1 rounded-xl p-3 text-gray-800 bg-[#e0e0e0] focus:outline-none resize-y max-h-40 min-h-[44px]" style={{boxShadow: "inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff"}}
           placeholder="メッセージを入力..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -138,7 +136,7 @@ export default function DifyChat() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 rounded-xl text-gray-800 transition-colors disabled:opacity-50" style={{backgroundColor:'#e0e0e0',boxShadow:'6px 6px 12px #bebebe, -6px -6px 12px #ffffff'}}
+          className="px-4 h-[44px] rounded-xl text-gray-800 flex items-center justify-center transition-colors disabled:opacity-50" style={{backgroundColor:'#e0e0e0',boxShadow:'6px 6px 12px #bebebe, -6px -6px 12px #ffffff'}}
         >
           {loading ? "..." : "送信"}
         </button>
