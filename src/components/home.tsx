@@ -88,7 +88,7 @@ export default function Home() {
               <p className="text-gray-400 mb-2">
                 {sketch.caption ? sketch.caption.substring(0, 100) : "No caption available"}...
               </p>
-              <Link href={`/p5js/${sketch.id}`} className="text-sm text-gray-300 hover:text-white transition-colors">
+              <Link href={`/sketches/${sketch.id}`} className="text-sm text-gray-300 hover:text-white transition-colors">
                 See →
               </Link>
             </article>
