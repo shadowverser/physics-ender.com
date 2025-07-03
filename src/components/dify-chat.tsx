@@ -103,7 +103,7 @@ export default function DifyChat() {
             if (data.answer) {
               fullAnswer += data.answer;
             }
-          } catch (_e) {
+          } catch {
             console.warn("Partial JSON in SSE stream, ignoring.", jsonStr);
           }
         }
