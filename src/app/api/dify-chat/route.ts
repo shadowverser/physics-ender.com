@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 
+export const maxDuration = 60; // Set max duration to 60 seconds
+
 export async function POST(req: NextRequest) {
   try {
     const { query, user } = await req.json();
