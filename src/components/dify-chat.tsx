@@ -192,10 +192,7 @@ export default function DifyChat() {
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    sendMessage();
-  };
+
 
   const handleHintClick = (hint: string) => {
     setInput(hint);
@@ -273,8 +270,7 @@ export default function DifyChat() {
         return (
           <div className="px-4 pt-2 pb-4 bg-[#e0e0e0] border-t border-gray-200">
             <div className="text-center text-sm text-gray-600 mb-2">
-                <p className="font-semibold">書き出しのヒント</p>
-                <p>Tabキーで入力欄に追加します</p>
+                <p>書き出しのヒント (Tabキーで入力欄に追加します)</p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
                 {latestHints.map((hint, hIdx) => (
@@ -288,7 +284,7 @@ export default function DifyChat() {
         );
       })()}
 
-      <form onSubmit={handleSubmit} className="p-4 bg-[#e0e0e0] flex gap-2 items-center border-t border-gray-300">
+      <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="p-4 bg-[#e0e0e0] flex gap-2 items-center border-t border-gray-300">
         <textarea
           rows={1}
           className="flex-1 rounded-xl p-3 text-gray-800 bg-[#e0e0e0] focus:outline-none resize-y max-h-40 min-h-[44px]"
