@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, FormEvent } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 interface AssistantMessage {
   advice?: string;
@@ -103,7 +103,7 @@ export default function DifyChat() {
             if (data.answer) {
               fullAnswer += data.answer;
             }
-          } catch (e) {
+          } catch (_e) {
             console.warn("Partial JSON in SSE stream, ignoring.", jsonStr);
           }
         }
