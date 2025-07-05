@@ -17,6 +17,8 @@ import {
   useReactFlow,
   useNodes,
   BackgroundVariant,
+  EdgeChange,
+  EdgeRemoveChange,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Canvas } from '@react-three/fiber';
@@ -36,7 +38,7 @@ interface RenderData {
   lightIds: string[];
 }
 
-const initialNodes: Node[] = [];
+const initialNodes: Node<GeometryData | LightData | RenderData>[] = [];
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
@@ -133,14 +135,14 @@ const RenderNode = ({ data }: { data: RenderData }) => {
 
 const FlowEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, _onEdgesChange] = useEdgesState([]);
   const [jsonOutput, setJsonOutput] = useState('');
   const [isJsonVisible, setIsJsonVisible] = useState(false);
   const { toObject, setViewport } = useReactFlow();
   const [llmPrompt, setLlmPrompt] = useState('A box and a sphere rendered with one light');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const LightNode = ({ id, data }: { id: string, data: LightData }) => {
+  const LightNode = useCallback(({ id, data }: { id: string, data: LightData }) => {
     const handleIntensityChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
       const newIntensity = parseFloat(evt.target.value);
       if (!isNaN(newIntensity)) {
@@ -171,14 +173,14 @@ const FlowEditor = () => {
         </div>
       </NodeWrapper>
     );
-  };
+  }, [setNodes]);
 
-  const nodeTypes = useMemo(() => ({ 
-    sphere: SphereNode, 
-    box: BoxNode, 
-    light: LightNode, 
-    render: RenderNode 
-  }), []);
+  const nodeTypes = useMemo(() => ({
+    sphere: SphereNode,
+    box: BoxNode,
+    light: LightNode,
+    render: RenderNode,
+  }), [LightNode]);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => {
@@ -189,12 +191,13 @@ const FlowEditor = () => {
       if (sourceNode && targetNode && targetNode.type === 'render' && params.source) {
         setNodes((nds) =>
           nds.map((node) => {
-            if (node.id === targetNode.id) {
-              const updatedData = { ...node.data };
+            if (node.id === targetNode.id && node.type === 'render') {
+              const currentData = node.data as RenderData;
+              const updatedData: RenderData = { ...currentData };
               if ((sourceNode.type === 'sphere' || sourceNode.type === 'box') && params.targetHandle === 'geometry-in') {
-                updatedData.geometryIds = [...(updatedData.geometryIds || []), params.source];
+                updatedData.geometryIds = [...(currentData.geometryIds || []), params.source!];
               } else if (sourceNode.type === 'light' && params.targetHandle === 'light-in') {
-                updatedData.lightIds = [...(updatedData.lightIds || []), params.source];
+                updatedData.lightIds = [...(currentData.lightIds || []), params.source!];
               }
               return { ...node, data: updatedData };
             }
@@ -206,46 +209,51 @@ const FlowEditor = () => {
     [nodes, setEdges, setNodes]
   );
 
-  const onEdgesDelete = useCallback(
-    (edgesToDelete: Edge[]) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.type === 'render') {
-            const updatedData = { ...node.data };
-            let changed = false;
+  const onEdgesChange = (changes: EdgeChange[]) => {
+    _onEdgesChange(changes);
 
-            const geometryEdges = edgesToDelete.filter(e => e.target === node.id && e.targetHandle === 'geometry-in');
-            if (geometryEdges.length > 0) {
-              const sourceIdsToRemove = new Set(geometryEdges.map(e => e.source));
-              const newGeometryIds = (updatedData.geometryIds || []).filter((id: string) => !sourceIdsToRemove.has(id));
-              if (newGeometryIds.length !== (updatedData.geometryIds || []).length) {
-                updatedData.geometryIds = newGeometryIds;
-                changed = true;
-              }
-            }
+    const edgesToRemove = changes.filter((c): c is EdgeRemoveChange => c.type === 'remove');
+    if (edgesToRemove.length === 0) return;
 
-            const lightEdges = edgesToDelete.filter(e => e.target === node.id && e.targetHandle === 'light-in');
-            if (lightEdges.length > 0) {
-              const sourceIdsToRemove = new Set(lightEdges.map(e => e.source));
-              const newLightIds = (updatedData.lightIds || []).filter((id: string) => !sourceIdsToRemove.has(id));
-              if (newLightIds.length !== (updatedData.lightIds || []).length) {
-                updatedData.lightIds = newLightIds;
-                changed = true;
-              }
-            }
+    setNodes((currentNodes) => {
+      const newNodes = [...currentNodes];
+      const renderNodesToUpdate = new Map<string, RenderData>();
 
-            if (changed) {
-              return { ...node, data: updatedData };
-            }
+      for (const edgeChange of edgesToRemove) {
+        const edge = edges.find(e => e.id === edgeChange.id);
+        if (!edge) continue;
+
+        const targetNode = newNodes.find(n => n.id === edge.target);
+        if (targetNode && targetNode.type === 'render') {
+          let currentRenderData = renderNodesToUpdate.get(targetNode.id);
+          if (!currentRenderData) {
+            currentRenderData = { ...(targetNode.data as RenderData) };
           }
-          return node;
-        })
-      );
-    },
-    [setNodes]
-  );
 
-  const addNode = (type: string, data: any) => {
+          if (edge.targetHandle === 'geometry-in') {
+            currentRenderData.geometryIds = (currentRenderData.geometryIds || []).filter(id => id !== edge.source);
+          } else if (edge.targetHandle === 'light-in') {
+            currentRenderData.lightIds = (currentRenderData.lightIds || []).filter(id => id !== edge.source);
+          }
+          renderNodesToUpdate.set(targetNode.id, currentRenderData);
+        }
+      }
+
+      if (renderNodesToUpdate.size > 0) {
+        return newNodes.map(n => {
+          if (renderNodesToUpdate.has(n.id)) {
+            return { ...n, data: renderNodesToUpdate.get(n.id)! };
+          }
+          return n;
+        });
+      }
+
+      return currentNodes;
+    });
+  };
+
+    type AllNodeData = GeometryData | LightData | RenderData;
+  const addNode = (type: string, data: AllNodeData) => {
     const newNode = {
       id: getId(),
       type,
@@ -258,8 +266,8 @@ const FlowEditor = () => {
     setNodes((nds) => nds.concat(newNode));
   };
 
-  const addSphereNode = () => addNode('sphere', { color: 'orange' });
-  const addBoxNode = () => addNode('box', { color: 'mediumpurple' });
+  const addSphereNode = () => addNode('sphere', { color: 'orange' } as GeometryData);
+  const addBoxNode = () => addNode('box', { color: 'mediumpurple' } as GeometryData);
   const addLightNode = () => addNode('light', { intensity: 1 });
   const addRenderNode = () => addNode('render', { geometryIds: [], lightIds: [] });
 
@@ -347,7 +355,6 @@ const FlowEditor = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onEdgesDelete={onEdgesDelete}
         nodeTypes={nodeTypes}
         fitView
       >

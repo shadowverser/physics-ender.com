@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     try {
         JSON.parse(cleanedJson);
         return NextResponse.json({ json: cleanedJson });
-    } catch (parseError) {
+    } catch {
         console.error("Generated content is not valid JSON:", cleanedJson);
         return NextResponse.json({ error: 'Generated content was not valid JSON.', rawContent: cleanedJson }, { status: 500 });
     }
