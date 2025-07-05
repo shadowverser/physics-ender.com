@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 const applicationFolders = [
   { name: 'language-learning-chat' },
+  { name: 'qompath' },
   // 他のサブディレクトリがあればここに追加
 ];
 
